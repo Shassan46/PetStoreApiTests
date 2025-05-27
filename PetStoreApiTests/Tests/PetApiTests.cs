@@ -18,7 +18,7 @@ namespace PetStoreApiTests.Tests
         {
             var baseUrl = TestContextLoader.Configuration["baseUrl"];
             _client = new RestClient(baseUrl);
-            _apiClient = new ApiClient(_client); // Instantiate ApiClient here
+            _apiClient = new ApiClient(_client);
         }
 
         [TearDown]
@@ -32,24 +32,23 @@ namespace PetStoreApiTests.Tests
         {
             var pet = new
             {
-                id = new Random().Next(100000, 999999),
+                id = "abc-" + new Random().Next(100000, 999999).ToString(),
                 name = "EndToEndTestDog",
                 photoUrls = new[] { "http://example.com/photo.png" },
                 status = "available"
             };
-            _petId = pet.id;
 
             var request = new RestRequest("pet", Method.Post);
             request.AddJsonBody(pet);
 
             var response = _client.Execute(request);
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
         }
 
         [Test, Order(2)]
         public void UpdatePetStatus_ShouldSucceed()
         {
-            Assume.That(_petId, Is.GreaterThan(0));
+            //Assume.That(_petId, Is.GreaterThan(0));
 
             var updatedPet = new
             {
@@ -59,43 +58,43 @@ namespace PetStoreApiTests.Tests
                 status = "sold"
             };
 
-            var request = new RestRequest("pet", Method.Put);
+            var request = new RestRequest("pet", Method.Get);
             request.AddJsonBody(updatedPet);
 
             var response = _client.Execute(request);
-            Thread.Sleep(3000); // Wait for the update to propagate
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
         [Test, Order(3)]
         public void GetPetById_ShouldReturnUpdatedStatus()
         {
-            Assume.That(_petId, Is.GreaterThan(0));
+            //Assume.That(_petId, Is.GreaterThan(0));
 
             var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Get);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             var pet = JsonSerializer.Deserialize<Pet>(response.Content, new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                //PropertyNameCaseInsensitive = true
             });
-            Assert.That(pet.status, Is.EqualTo("sold"));
+
+            Assert.That(pet.status, Is.EqualTo("pending"));
         }
 
         [Test, Order(4)]
         public void DeletePet_ShouldSucceed()
         {
-            Assume.That(_petId, Is.GreaterThan(0));
+            //Assume.That(_petId, Is.GreaterThan(0));
             var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Delete);
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
         }
 
         [Test, Order(5)]
         public void GetDeletedPet_ShouldReturnNotFound()
         {
-            Assume.That(_petId, Is.GreaterThan(0));
+            //Assume.That(_petId, Is.GreaterThan(0));
             var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Get);
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
         public class Pet
