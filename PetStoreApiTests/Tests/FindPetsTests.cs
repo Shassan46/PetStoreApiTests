@@ -17,12 +17,6 @@ namespace PetStoreApiTests.Tests
             client = new RestClient(baseUrl);
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            client?.Dispose();
-        }
-
         [Test]
         public void FindPetsByStatus_ShouldReturn200()
         {
@@ -30,6 +24,12 @@ namespace PetStoreApiTests.Tests
 
             var response = client.Execute(request);
             Assert.That(HttpStatusCode.OK, Is.EqualTo(response.StatusCode));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            client?.Dispose();
         }
     }
 }

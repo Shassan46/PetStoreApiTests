@@ -21,12 +21,6 @@ namespace PetStoreApiTests.Tests
             _apiClient = new ApiClient(_client); // Instantiate ApiClient here
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            _client?.Dispose();
-        }
-
         [Test, Order(1)]
         public void CreatePet_ShouldReturnSuccess()
         {
@@ -105,6 +99,10 @@ namespace PetStoreApiTests.Tests
             public string status { get; set; }
         }
 
-        
+        [TearDown]
+        public void TearDown()
+        {
+            _client?.Dispose();
+        }
     }
 }
