@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using PetstoreApiTests;
+using PetStoreApiTests.Utils;
 using RestSharp;
 using System.Net;
 using System.Text.Json;
@@ -8,8 +9,8 @@ namespace PetStoreApiTests.Tests
 {
     public class PetApiTests
     {
-
         private RestClient _client;
+        private ApiClient _apiClient;
         private long _petId;
 
         [SetUp]
@@ -17,8 +18,14 @@ namespace PetStoreApiTests.Tests
         {
             var baseUrl = TestContextLoader.Configuration["baseUrl"];
             _client = new RestClient(baseUrl);
+            _apiClient = new ApiClient(_client); // Instantiate ApiClient here
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            _client?.Dispose();
+        }
 
         [Test, Order(1)]
         public void CreatePet_ShouldReturnSuccess()
@@ -56,6 +63,7 @@ namespace PetStoreApiTests.Tests
             request.AddJsonBody(updatedPet);
 
             var response = _client.Execute(request);
+            Thread.Sleep(3000); // Wait for the update to propagate
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
@@ -64,7 +72,7 @@ namespace PetStoreApiTests.Tests
         {
             Assume.That(_petId, Is.GreaterThan(0));
 
-            var response = PollUntilSuccess($"pet/{_petId}", Method.Get);
+            var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Get);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
             var pet = JsonSerializer.Deserialize<Pet>(response.Content, new JsonSerializerOptions
@@ -78,7 +86,7 @@ namespace PetStoreApiTests.Tests
         public void DeletePet_ShouldSucceed()
         {
             Assume.That(_petId, Is.GreaterThan(0));
-            var response = PollUntilSuccess($"pet/{_petId}", Method.Delete);
+            var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Delete);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
@@ -86,7 +94,7 @@ namespace PetStoreApiTests.Tests
         public void GetDeletedPet_ShouldReturnNotFound()
         {
             Assume.That(_petId, Is.GreaterThan(0));
-            var response = PollUntilSuccess($"pet/{_petId}", Method.Get);
+            var response = _apiClient.PollUntilSuccess($"pet/{_petId}", Method.Get);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
         }
 
@@ -97,23 +105,6 @@ namespace PetStoreApiTests.Tests
             public string status { get; set; }
         }
 
-        private RestResponse PollUntilSuccess(string resource,Method method, int maxAttempts = 5, int delayMs = 3000)
-        {
-            RestResponse response = null;
-
-            for (int i = 0; i < maxAttempts; i++)
-            {
-                var request = new RestRequest(resource, method);
-                response = _client.Execute(request);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                    break;
-
-                Thread.Sleep(delayMs);
-            }
-
-            return response;
-        }
-
+        
     }
 }
