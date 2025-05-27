@@ -1,0 +1,34 @@
+name: .NET NUnit Tests
+
+on:
+  push:
+    branches:
+      - main # Or your default branch like 'master' or 'development'
+      - feature/** # Run on feature branches
+  pull_request:
+    branches:
+      - main # Run on PRs targeting main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # You can also use 'windows-latest' or 'macos-latest'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Action to check out your repository code
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x' # Specify your .NET SDK version, e.g., '6.x', '7.x', '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore PetStoreApiTests.sln # Replace with your solution file name or remove if .sln is in root
+
+      - name: Build project
+        run: dotnet build PetStoreApiTests.sln --no-restore # Replace with your solution file name
+
+      - name: Run NUnit Tests
+        run: dotnet test PetStoreApiTests.sln --no-build --verbosity normal # Replace with your solution file name
+
+  
