@@ -3,11 +3,11 @@ name: .NET NUnit Tests
 on:
   push:
     branches:
-      - main # Or your default branch like 'master' or 'development'
+      - master # Or your default branch like 'master' or 'development'
       - feature/** # Run on feature branches
   pull_request:
     branches:
-      - main # Run on PRs targeting main
+      - master # Run on PRs targeting main
 
 jobs:
   build-and-test:
