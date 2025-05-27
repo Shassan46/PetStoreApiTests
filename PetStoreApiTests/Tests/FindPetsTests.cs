@@ -17,6 +17,12 @@ namespace PetStoreApiTests.Tests
             client = new RestClient(baseUrl);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            client?.Dispose();
+        }
+
         [Test]
         public void FindPetsByStatus_ShouldReturn200()
         {
